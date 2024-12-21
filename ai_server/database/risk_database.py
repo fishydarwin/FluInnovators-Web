@@ -30,7 +30,7 @@ def at_risk(id: int) -> tuple:
         return 0, 0
 
 def start(id: int) -> None:
-    database.execute_commit("INSERT INTO Risk(id, at_risk, complete) VALUES(?, 0, 0)", (id))
+    database.execute_commit("INSERT INTO Risk(id, at_risk, complete) VALUES(?, 0, 0)", (id,))
 
 def end(id: int, at_risk: int) -> None:
     database.execute_commit("UPDATE Risk SET at_risk=?,complete=1 WHERE id=?", (at_risk, id))
