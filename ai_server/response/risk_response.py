@@ -4,7 +4,7 @@ from response import status
 from ai import ai_model
 from threading import Thread
 
-risk_blueprint = Blueprint("risk", __name__);
+risk_blueprint = Blueprint("risk", __name__)
 
 risk_database.init()
 
