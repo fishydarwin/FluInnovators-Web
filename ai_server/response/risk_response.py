@@ -4,33 +4,23 @@ from response import status
 from ai import ai_model
 from threading import Thread
 
-risk_blueprint = Blueprint("risk", __name__);
+risk_blueprint = Blueprint("risk", __name__)
 
 risk_database.init()
 
 # TODO: this should be moved to significant_response.py, with its own end-point,
 #       as outlined in the theoretical document
+# TODO: Decide whether the request can be sent without all of the features being mandatory.
+#       OR
+#       The exact structure with all the features is mandatory for the request, but let
+#       the Spring Boot backend handle missing features, setting them to NaN
+# The model handles missing features, setting NaN to them
+# This one is just an example, there are around 126 features
 expected_parameters = {
     'd_geo_mean': 22.314323,
     'geo_mean': 7.974775,
-    'CD85j+CD4+_T_cells': 4.016304,
-    'CD161+CD45RA+_Tregs': 2.182465,
-    'L50_IFNB': 1.890115,
-    'L50_ICAM1': 1.813595,
-    'CD27+CD8+_T_cells': 1.568877,
-    'L50_HGF': 1.506532,
-    'HLADR-CD38+CD4+_T_cells': 1.475321,
-    'B_cells': 1.459686,
-    'total_vaccines_received': 1.422971,
-    'L50_RANTES': 1.378472,
-    'L50_PDGFBB': 1.236744,
-    'Tregs': 1.208230,
-    'L50_IL17F': 1.168467,
-    'monocytes': 1.139914,
-    'RANTES': 1.081454,
-    'L50_CD40L': 1.069806,
-    'Unstim_CD8+:_pSTAT3': 0.971132,
-    'vaccine_type_2yr_prior': 0.960934
+    "basophils": 45.5,
+    "BDNF": 30.1,
 }
 
 @risk_blueprint.route("/risk/compute")
@@ -41,7 +31,7 @@ def compute():
 
     if None in (id, sample):
         return Response("Bad request. Missing all GET params: id, sample", status=status.bad_request)
-    
+
     try:
         id = int(id)
         sample = sample.split(";")
@@ -54,18 +44,19 @@ def compute():
             return Response("Bad request. Sample parameters are invalid/missing.", status=status.bad_request)
     except:
         return Response("Bad request. Are your params correct?", status=status.bad_request)
-    
+
     if risk_database.has(id):
         if risk_database.completed(id):
             return Response('{"complete": true}', status=status.ok, mimetype='application/json')
         return Response('{"complete": false}', status=status.processing, mimetype='application/json')
     else:
-        
-        thread = Thread(target=ai_model.compute_risk, args=(id,))
+
+        thread = Thread(target=ai_model.compute_risk, args=(id, sample))
         thread.start()
         risk_database.start(id)
 
         return Response('{"complete": false}', status=status.accepted, mimetype='application/json')
+
 
 @risk_blueprint.route("/risk/result")
 def result():
@@ -76,10 +67,11 @@ def result():
         id = int(id)
     except:
         return Response("Bad request. Are your params correct?", status=status.bad_request)
-    
+
     if risk_database.has(id):
         result = risk_database.at_risk(id)
-        return Response('{"complete":' + str(result[1]) + ', "at_risk":' + str(result[0]) + '}', 
-                        status=status.ok, mimetype='application/json')
+        return Response(
+            '{"complete":' + str(result[1] == 1).lower() + ', "at_risk":' + str(result[0] == 1).lower() + '}',
+            status=status.ok, mimetype='application/json')
 
     return Response('{"complete": false, "at_risk": false}', status=status.ok, mimetype='application/json')
