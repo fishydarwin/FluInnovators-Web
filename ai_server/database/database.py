@@ -1,7 +1,7 @@
 import sqlite3
 
 ###
-### WARNING: This simple framework is not thread safe!
+### WARNING: This simple framework has not been tested for thread safety!
 ###
 
 connection = None
