@@ -110,6 +110,11 @@ h1, h2 {
         color: #555;
     }
 
+p {
+    color: #555;
+}
+
+
 .description {
     font-style: italic;
     color: #888;
@@ -141,6 +146,10 @@ h1, h2 {
     display: flex;
     justify-content: space-around;
     margin-top: 10px;
+}
+
+.status.scaled {
+    transform: scale(1.3); 
 }
 
 .status {
