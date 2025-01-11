@@ -21,9 +21,9 @@ def completed(id: int) -> bool:
     return count != 0
 
 def at_risk(id: int) -> tuple:
-    result = database.execute_query("SELECT at_risk,complete FROM Risk WHERE id=? AND at_risk=1 AND complete=1", (id,))
+    result = database.execute_query("SELECT at_risk,complete FROM Risk WHERE id=?", (id,))
     try:
-        at_risk = int(result[0][0]) == 1
+        at_risk = int.from_bytes(result[0][0]) == 1
         complete = int(result[0][1]) == 1
         return at_risk, complete
     except:
