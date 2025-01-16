@@ -8,48 +8,38 @@ risk_blueprint = Blueprint("risk", __name__)
 
 risk_database.init()
 
-# TODO: this should be moved to significant_response.py, with its own end-point,
-#       as outlined in the theoretical document
-# TODO: Decide whether the request can be sent without all of the features being mandatory.
-#       OR
-#       The exact structure with all the features is mandatory for the request, but let
-#       the Spring Boot backend handle missing features, setting them to NaN
-# The model handles missing features, setting NaN to them
-# This one is just an example, there are around 126 features
-expected_parameters = {
-    'd_geo_mean': 22.314323,
-    'geo_mean': 7.974775,
-    "basophils": 45.5,
-    "BDNF": 30.1,
-}
-
-@risk_blueprint.route("/risk/compute")
+# POST request required for abitrary content length
+@risk_blueprint.route("/risk/compute", methods=['POST'])
 def compute():
     args = request.args
     id = args.get('id')
-    sample = args.get('sample')
 
-    if None in (id, sample):
-        return Response("Bad request. Missing all GET params: id, sample", status=status.bad_request)
-
-    try:
-        id = int(id)
-        sample = sample.split(";")
-        aux = {}
-        for parameter in sample:
-            param_split = parameter.split("==")
-            aux[param_split[0].replace(" ", "_")] = param_split[1].replace(" ", "_")
-        sample = aux
-        if sample.keys() != expected_parameters.keys():
-            return Response("Bad request. Sample parameters are invalid/missing.", status=status.bad_request)
-    except:
-        return Response("Bad request. Are your params correct?", status=status.bad_request)
+    if id is None:
+        return Response("Bad request. Missing all POST params: id", status=status.bad_request)
 
     if risk_database.has(id):
         if risk_database.completed(id):
             return Response('{"complete": true}', status=status.ok, mimetype='application/json')
         return Response('{"complete": false}', status=status.processing, mimetype='application/json')
     else:
+            
+        sample_json = None
+        try:
+            sample_json = request.json
+        except:
+            return Response("Bad request. Could not parse JSON body containing sample data.", 
+                            status=status.bad_request)
+
+        sample = {}
+        try:
+            id = int(id)
+            for index in range(len(sample_json)):
+                parameter_json_obj = dict(sample_json[index])
+                parameter_name = next(iter(parameter_json_obj))
+                sample[parameter_name.replace(" ", "_")] = \
+                    str(parameter_json_obj[parameter_name]).replace(" ", "_")
+        except:
+            return Response("Bad request. Is your JSON body correct?", status=status.bad_request)
 
         thread = Thread(target=ai_model.compute_risk, args=(id, sample))
         thread.start()
