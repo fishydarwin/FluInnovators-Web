@@ -8,7 +8,7 @@ risk_blueprint = Blueprint("risk", __name__)
 
 risk_database.init()
 
-# POST request required for abitrary content length
+# POST request required for arbitrary content length
 @risk_blueprint.route("/risk/compute", methods=['POST'])
 def compute():
     args = request.args
@@ -25,7 +25,7 @@ def compute():
             
         sample_json = None
         try:
-            sample_json = request.json
+            sample_json = request.json['params']
         except:
             return Response("Bad request. Could not parse JSON body containing sample data.", 
                             status=status.bad_request)
@@ -34,7 +34,7 @@ def compute():
         try:
             id = int(id)
             for index in range(len(sample_json)):
-                parameter_json_obj = dict(sample_json[index])
+                parameter_json_obj = sample_json[index]
                 parameter_name = next(iter(parameter_json_obj))
                 sample[parameter_name.replace(" ", "_")] = \
                     str(parameter_json_obj[parameter_name]).replace(" ", "_")

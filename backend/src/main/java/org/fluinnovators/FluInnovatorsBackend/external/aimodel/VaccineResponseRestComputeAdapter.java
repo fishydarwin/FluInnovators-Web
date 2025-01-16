@@ -3,15 +3,18 @@ package org.fluinnovators.FluInnovatorsBackend.external.aimodel;
 import org.fluinnovators.FluInnovatorsBackend.config.ApplicationConfig;
 import org.fluinnovators.FluInnovatorsBackend.domain.VaccineResponse;
 import org.fluinnovators.FluInnovatorsBackend.external.UnirestRestGetAdapter;
+import org.fluinnovators.FluInnovatorsBackend.external.UnirestRestPostAdapter;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.Map;
 
-public class VaccineResponseRestResultAdapter extends UnirestRestGetAdapter<VaccineResponse> {
+public class VaccineResponseRestComputeAdapter extends
+        UnirestRestPostAdapter<VaccineResponse.VaccineResponseComputeStatus> {
 
     private final long id;
-    public VaccineResponseRestResultAdapter(long id) {
-        super(ApplicationConfig.AI_MODEL_SERVER_URL + "/risk/result");
+    public VaccineResponseRestComputeAdapter(long id, Map<String, Object> sampleDetails) {
+        super(ApplicationConfig.AI_MODEL_SERVER_URL + "/risk/compute");
         this.id = id;
     }
 
@@ -21,9 +24,18 @@ public class VaccineResponseRestResultAdapter extends UnirestRestGetAdapter<Vacc
     }
 
     @Override
-    protected VaccineResponse adaptJsonToEntity(JSONObject json) {
-        return VaccineResponse.of(id,
-                json.getInt("complete") != 0,
-                json.getInt("at_risk") != 0);
+    protected JSONObject body() {
+        var body = new JSONObject();
+        var list = new JSONArray();
+
+        for ()
+
+        body.put("params", list);
+        return body;
+    }
+
+    @Override
+    protected VaccineResponse.VaccineResponseComputeStatus adaptJsonToEntity(JSONObject json) {
+        return VaccineResponse.VaccineResponseComputeStatus.of(json.getBoolean("complete"));
     }
 }

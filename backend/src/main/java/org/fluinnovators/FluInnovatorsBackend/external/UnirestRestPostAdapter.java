@@ -1,5 +1,7 @@
 package org.fluinnovators.FluInnovatorsBackend.external;
 
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.request.HttpRequest;
 import org.json.JSONObject;
@@ -9,10 +11,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-public abstract class UnirestRestGetAdapter<T> implements RestAdapter<T> {
+public abstract class UnirestRestPostAdapter<T> implements RestAdapter<T> {
 
     protected final String requestUrl;
-    public UnirestRestGetAdapter(String requestUrl) {
+    public UnirestRestPostAdapter(String requestUrl) {
         this.requestUrl = requestUrl;
     }
 
@@ -20,6 +22,7 @@ public abstract class UnirestRestGetAdapter<T> implements RestAdapter<T> {
             Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     protected abstract Map<String, Object> queryParams();
+    protected abstract JSONObject body();
     protected abstract T adaptJsonToEntity(JSONObject json);
 
     @Override
@@ -30,10 +33,13 @@ public abstract class UnirestRestGetAdapter<T> implements RestAdapter<T> {
     @Override
     public Future<T> completeRequest() {
         return unirestThreadPool.submit(() -> {
-            HttpRequest request = Unirest.get(requestUrl)
+            HttpResponse<JsonNode> request = Unirest.post(requestUrl)
                     .header("accept", "application/json")
-                    .queryString(queryParams());
-            return adaptJsonToEntity(request.asJson().getBody().getObject());
+                    .header("Content-Type", "application/json")
+                    .queryString(queryParams())
+                    .body(body())
+                    .asJson();
+            return adaptJsonToEntity(request.getBody().getObject());
         });
     }
 }
