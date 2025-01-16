@@ -1,5 +1,9 @@
 package org.fluinnovators.FluInnovatorsBackend.domain;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 
 public record VaccineResponse(long id, boolean complete, boolean atRisk) {
@@ -12,13 +16,7 @@ public record VaccineResponse(long id, boolean complete, boolean atRisk) {
         return new VaccineResponse(-1, false, false);
     }
 
-    @Getter
-    public static class VaccineResponseComputeStatus {
-        private final boolean complete;
-
-        public VaccineResponseComputeStatus(boolean complete) {
-            this.complete = complete;
-        }
+    public record VaccineResponseComputeStatus(boolean complete) {
 
         public static VaccineResponseComputeStatus of(boolean complete) {
             return new VaccineResponseComputeStatus(complete);
@@ -27,5 +25,13 @@ public record VaccineResponse(long id, boolean complete, boolean atRisk) {
         public static VaccineResponseComputeStatus empty() {
             return new VaccineResponseComputeStatus(false);
         }
+    }
+
+    @Entity
+    @Builder
+    public static class VaccineResponseHolder {
+        @Id
+        private int id;
+        private int patientId;
     }
 }
