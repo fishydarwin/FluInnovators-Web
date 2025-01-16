@@ -1,10 +1,10 @@
 package org.fluinnovators.FluInnovatorsBackend.external.aimodel;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.fluinnovators.FluInnovatorsBackend.config.ApplicationConfig;
 import org.fluinnovators.FluInnovatorsBackend.domain.VaccineResponse;
-import org.fluinnovators.FluInnovatorsBackend.external.UnirestRestGetAdapter;
 import org.fluinnovators.FluInnovatorsBackend.external.UnirestRestPostAdapter;
-import org.json.JSONArray;
+import org.fluinnovators.FluInnovatorsBackend.util.JSONUtils;
 import org.json.JSONObject;
 
 import java.util.Map;
@@ -13,9 +13,11 @@ public class VaccineResponseRestComputeAdapter extends
         UnirestRestPostAdapter<VaccineResponse.VaccineResponseComputeStatus> {
 
     private final long id;
-    public VaccineResponseRestComputeAdapter(long id, Map<String, Object> sampleDetails) {
+    private final JsonNode sampleDetails;
+    public VaccineResponseRestComputeAdapter(long id, JsonNode sampleDetails) {
         super(ApplicationConfig.AI_MODEL_SERVER_URL + "/risk/compute");
         this.id = id;
+        this.sampleDetails = sampleDetails;
     }
 
     @Override
@@ -25,13 +27,7 @@ public class VaccineResponseRestComputeAdapter extends
 
     @Override
     protected JSONObject body() {
-        var body = new JSONObject();
-        var list = new JSONArray();
-
-        for ()
-
-        body.put("params", list);
-        return body;
+        return JSONUtils.jacksonToJSON(sampleDetails);
     }
 
     @Override
