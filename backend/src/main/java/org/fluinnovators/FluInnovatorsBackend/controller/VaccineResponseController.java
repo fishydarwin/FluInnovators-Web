@@ -20,8 +20,8 @@ public class VaccineResponseController {
 
     @PostMapping("/vaccine-response/add")
     @CrossOrigin(origins = "http://localhost:3000")
-    public ResponseEntity<VaccineResponse.VaccineResponseHolder> add
-            (@RequestParam(value="patientId") int patientId) {
+    public ResponseEntity<VaccineResponse.VaccineResponseHolder>
+        add(@RequestParam(value="patientId") int patientId) {
         var newEntry = repository.save(
                 VaccineResponse.VaccineResponseHolder.builder().patientId(patientId).build()
         );

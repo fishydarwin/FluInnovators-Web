@@ -10,9 +10,6 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 
 @SpringBootApplication
 @EnableAutoConfiguration(exclude = { 		//TODO: remove this annotation
-		DataSourceAutoConfiguration.class,
-		DataSourceTransactionManagerAutoConfiguration.class,
-		HibernateJpaAutoConfiguration.class,
 		SecurityAutoConfiguration.class,
 })
 public class FluInnovatorsBackendApplication {

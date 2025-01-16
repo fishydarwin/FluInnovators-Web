@@ -1,6 +1,8 @@
 package org.fluinnovators.FluInnovatorsBackend.domain;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.Builder;
 import lombok.Data;
@@ -29,8 +31,10 @@ public record VaccineResponse(long id, boolean complete, boolean atRisk) {
 
     @Entity
     @Builder
+    @Getter
     public static class VaccineResponseHolder {
         @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
         private int id;
         private int patientId;
     }
