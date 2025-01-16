@@ -1,6 +1,5 @@
 package org.fluinnovators.FluInnovatorsBackend.external;
 
-import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.request.HttpRequest;
 import org.json.JSONObject;
@@ -10,10 +9,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-public abstract class UnirestRestAdapter<T> implements RestAdapter<T> {
+public abstract class UnirestRestGetAdapter<T> implements RestAdapter<T> {
 
     protected final String requestUrl;
-    public UnirestRestAdapter(String requestUrl) {
+    public UnirestRestGetAdapter(String requestUrl) {
         this.requestUrl = requestUrl;
     }
 
