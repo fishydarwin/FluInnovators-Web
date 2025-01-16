@@ -8,20 +8,40 @@ function App() {
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState(''); 
 
-    const fetchVaccineResponse = async (id) => {
+    const makeVaccineRequest = async (id, requestBody) => {
         setLoading(true);
         setStatus('started');
         try {
-            const response = await fetch(`http://localhost:8080/vaccine-response/result/${id}`);
+            const response = await fetch(`http://localhost:8080/vaccine-response/add?patientId=${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
             if (!response.ok) {
                 throw new Error(`Error: ${response.status} ${response.statusText}`);
             }
-            const data = await response.json();
+            const newId = await response.json();
+
+            const response2 = await fetch(`http://localhost:8080/vaccine-response/compute/${newId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody), 
+            });
+
+            if (!response2.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response2.json();
             setVaccineResponse(data);
             if (data.complete) {
                 setStatus('done');
             } else {
                 setStatus('in-progress');
+                pollForResult(newId); 
             }
             setVaccineError(null);
         } catch (err) {
@@ -30,6 +50,33 @@ function App() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const pollForResult = (id) => {
+        const interval = setInterval(async () => {
+            try {
+                const resultResponse = await fetch(`http://localhost:8080/vaccine-response/result/${id}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                if (!resultResponse.ok) {
+                    throw new Error(`Error fetching result: ${resultResponse.status} ${resultResponse.statusText}`);
+                }
+
+                const resultData = await resultResponse.json();
+                setVaccineResponse(resultData);
+
+                if (resultData.complete) {
+                    setStatus("done");
+                    clearInterval(interval); 
+                }
+            } catch (err) {
+                console.error("Error during polling:", err.message);
+            }
+        }, 5 * 60 * 1000); 
     };
 
     return (
@@ -102,7 +149,7 @@ function App() {
                             onKeyDown={(e) => {
                                 if (e.key === "Enter") {
                                     const input = e.target;
-                                    fetchVaccineResponse(input.value);
+                                    makeVaccineRequest(input.value, {});
                                 }
                             }}
                         />
@@ -110,11 +157,26 @@ function App() {
                             className="start-analysis"
                             onClick={() => {
                                 const input = document.querySelector('.ai-analysis input');
-                                fetchVaccineResponse(input.value);
+                                const requestBody = {
+                                    input1: document.getElementById("input1").value,
+                                    input2: document.getElementById("input2").value,
+                                    input3: document.getElementById("input3").value,
+                                    input4: document.getElementById("input4").value,
+                                    input5: document.getElementById("input5").value,
+                                };
+                                makeVaccineRequest(input.value, requestBody);
                             }}
                         >
                             Start Analysis
                         </button>
+
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "10px" }}>
+                        <input type="text" placeholder="Difference of geometric means" id="input1" style={{ padding: "10px", fontSize: "16px" }} />
+                        <input type="text" placeholder="Geometric mean" id="input2" style={{ padding: "10px", fontSize: "16px" }} />
+                        <input type="text" placeholder="CD85j+CD4+ T cells" id="input3" style={{ padding: "10px", fontSize: "16px" }} />
+                        <input type="text" placeholder="CD161+CD45RA+ Tregs" id="input4" style={{ padding: "10px", fontSize: "16px" }} />
+                        <input type="text" placeholder="L50_IFNB" id="input5" style={{ padding: "10px", fontSize: "16px" }} />
                     </div>
                     <div className="analysis-progress">
                         <div className={`status started ${status === 'started' ? 'scaled' : ''}`}>Analysis Started</div>
@@ -129,7 +191,7 @@ function App() {
                             <div className="vaccine-response">
                                 
                                 {vaccineResponse.complete ? (
-                                    <><p>The AI model has successfully completed its analysis.</p><p>
+                                    <><p style={{ color: "red" }} >The AI model has successfully completed its analysis.</p><p style={{ color: "red" }}>
                                         {vaccineResponse.atRisk ?
                                             "The model predicts that the patient has a high likelihood of experiencing complications or adverse effects from the vaccine." :
                                             "The model predicts that the patient has a low likelihood of experiencing complications or adverse effects from the vaccine."}
