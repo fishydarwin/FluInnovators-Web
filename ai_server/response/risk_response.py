@@ -36,8 +36,12 @@ def compute():
             for index in range(len(sample_json)):
                 parameter_json_obj = sample_json[index]
                 parameter_name = next(iter(parameter_json_obj))
-                sample[parameter_name.replace(" ", "_")] = \
-                    str(parameter_json_obj[parameter_name]).replace(" ", "_")
+                parameter_value = str(parameter_json_obj[parameter_name]).replace(" ", "_")
+                try:
+                    parameter_value = float(parameter_value)
+                except:
+                    pass
+                sample[parameter_name.replace(" ", "_")] = parameter_value
         except:
             return Response("Bad request. Is your JSON body correct?", status=status.bad_request)
 

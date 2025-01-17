@@ -21,7 +21,8 @@ function App() {
             if (!response.ok) {
                 throw new Error(`Error: ${response.status} ${response.statusText}`);
             }
-            const newId = await response.json();
+            const newVaccineResponse = await response.json();
+            let newId = newVaccineResponse.id;
 
             const response2 = await fetch(`http://localhost:8080/vaccine-response/compute/${newId}`, {
                 method: 'POST',
@@ -76,7 +77,7 @@ function App() {
             } catch (err) {
                 console.error("Error during polling:", err.message);
             }
-        }, 5 * 60 * 1000); 
+        }, 3000); 
     };
 
     return (
@@ -157,12 +158,12 @@ function App() {
                             className="start-analysis"
                             onClick={() => {
                                 const input = document.querySelector('.ai-analysis input');
-                                const requestBody = {
-                                    input1: document.getElementById("input1").value,
-                                    input2: document.getElementById("input2").value,
-                                    input3: document.getElementById("input3").value,
-                                    input4: document.getElementById("input4").value,
-                                    input5: document.getElementById("input5").value,
+                                const requestBody = { "params": [
+                                    {"d_geo_mean": document.getElementById("input1").value},
+                                    {"geo_mean": document.getElementById("input2").value},
+                                    {"CD85j_pos_CD4_pos_T_cells": document.getElementById("input3").value},
+                                    {"CD161_pos_CD45RA_pos_Tregs": document.getElementById("input4").value},
+                                    {"L50_IFNB": document.getElementById("input5").value}]
                                 };
                                 makeVaccineRequest(input.value, requestBody);
                             }}
